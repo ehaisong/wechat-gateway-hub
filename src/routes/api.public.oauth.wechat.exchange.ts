@@ -9,7 +9,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { getClient, verifyClientSecret } from "@/server/clients.server";
 import { getKV } from "@/server/kv.server";
-import type { TicketRecord } from "../wechat.callback";
+import type { TicketRecord } from "./wechat.callback";
 
 const BodySchema = z.object({
   ticket: z.string().min(20).max(200),

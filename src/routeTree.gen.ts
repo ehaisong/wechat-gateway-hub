@@ -9,38 +9,102 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as HealthzRouteImport } from './routes/healthz'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WechatCallbackRouteImport } from './routes/wechat.callback'
+import { Route as OauthWechatStartRouteImport } from './routes/oauth.wechat.start'
+import { Route as ApiPublicOauthWechatExchangeRouteImport } from './routes/api.public.oauth.wechat.exchange'
 
+const HealthzRoute = HealthzRouteImport.update({
+  id: '/healthz',
+  path: '/healthz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WechatCallbackRoute = WechatCallbackRouteImport.update({
+  id: '/wechat/callback',
+  path: '/wechat/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthWechatStartRoute = OauthWechatStartRouteImport.update({
+  id: '/oauth/wechat/start',
+  path: '/oauth/wechat/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthWechatExchangeRoute =
+  ApiPublicOauthWechatExchangeRouteImport.update({
+    id: '/api/public/oauth/wechat/exchange',
+    path: '/api/public/oauth/wechat/exchange',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/healthz': typeof HealthzRoute
+  '/wechat/callback': typeof WechatCallbackRoute
+  '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/healthz': typeof HealthzRoute
+  '/wechat/callback': typeof WechatCallbackRoute
+  '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/healthz': typeof HealthzRoute
+  '/wechat/callback': typeof WechatCallbackRoute
+  '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/healthz'
+    | '/wechat/callback'
+    | '/oauth/wechat/start'
+    | '/api/public/oauth/wechat/exchange'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/healthz'
+    | '/wechat/callback'
+    | '/oauth/wechat/start'
+    | '/api/public/oauth/wechat/exchange'
+  id:
+    | '__root__'
+    | '/'
+    | '/healthz'
+    | '/wechat/callback'
+    | '/oauth/wechat/start'
+    | '/api/public/oauth/wechat/exchange'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HealthzRoute: typeof HealthzRoute
+  WechatCallbackRoute: typeof WechatCallbackRoute
+  OauthWechatStartRoute: typeof OauthWechatStartRoute
+  ApiPublicOauthWechatExchangeRoute: typeof ApiPublicOauthWechatExchangeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/healthz': {
+      id: '/healthz'
+      path: '/healthz'
+      fullPath: '/healthz'
+      preLoaderRoute: typeof HealthzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +112,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wechat/callback': {
+      id: '/wechat/callback'
+      path: '/wechat/callback'
+      fullPath: '/wechat/callback'
+      preLoaderRoute: typeof WechatCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/wechat/start': {
+      id: '/oauth/wechat/start'
+      path: '/oauth/wechat/start'
+      fullPath: '/oauth/wechat/start'
+      preLoaderRoute: typeof OauthWechatStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/wechat/exchange': {
+      id: '/api/public/oauth/wechat/exchange'
+      path: '/api/public/oauth/wechat/exchange'
+      fullPath: '/api/public/oauth/wechat/exchange'
+      preLoaderRoute: typeof ApiPublicOauthWechatExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HealthzRoute: HealthzRoute,
+  WechatCallbackRoute: WechatCallbackRoute,
+  OauthWechatStartRoute: OauthWechatStartRoute,
+  ApiPublicOauthWechatExchangeRoute: ApiPublicOauthWechatExchangeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
