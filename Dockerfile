@@ -7,13 +7,14 @@ COPY . .
 RUN bun run build
 
 # --- runtime stage ---
-# TanStack Start emits a Node-compatible server bundle under .output/
+# 用 Node 跑 SSR(完全脱离 Cloudflare Workers 运行时)
 FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-COPY --from=build /app/.output ./.output
+ENV HOST=0.0.0.0
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/server.mjs ./server.mjs
 COPY --from=build /app/package.json ./package.json
 EXPOSE 3000
-# Adjust the entry path if your build output differs (e.g. .output/server/index.mjs)
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "server.mjs"]
