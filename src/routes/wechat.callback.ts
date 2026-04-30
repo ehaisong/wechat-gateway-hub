@@ -44,9 +44,10 @@ function errorRedirect(code: string, msg: string): Response {
 }
 
 export const Route = createFileRoute("/wechat/callback")({
+  // @ts-expect-error TanStack Start server route block; types not yet exposed via react-router augmentation
   server: {
     handlers: {
-      GET: async ({ request }) => {
+      GET: async ({ request }: { request: Request }) => {
         const url = new URL(request.url);
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");

@@ -24,9 +24,10 @@ function errorRedirect(code: string, msg: string): Response {
 }
 
 export const Route = createFileRoute("/oauth/wechat/start")({
+  // @ts-expect-error TanStack Start server route block; types not yet exposed via react-router augmentation
   server: {
     handlers: {
-      GET: async ({ request }) => {
+      GET: async ({ request }: { request: Request }) => {
         const url = new URL(request.url);
         const clientName = url.searchParams.get("client") ?? "";
         const returnPath = sanitizeReturnPath(url.searchParams.get("return_path"));
