@@ -42,17 +42,39 @@ a.com / c.com / d.com  ──►  b.com (本服务)  ──►  微信开放平�
 - `RELAY_BASE_URL` — 本服务对外 URL,必须 `https://`,**域名必须等于** 微信开放平台填写的「授权回调域」
 - `CLIENTS_JSON` — 业务站点白名单,JSON 字符串。每个站点一个 `client_secret`(≥16 字符,只发给该站点后端)
 
-### 3. Zeabur + 国内云服务器(推荐路径)
+### 3. 构建产物说明(重要)
+
+本项目原本是 TanStack Start + Cloudflare Workers 模板,**已改造为标准 Node 服务**(`vite.config.ts` 里 `cloudflare: false`),专门面向国内服务器部署。构建产物:
+
+```
+dist/client/   ← 前端静态资源
+dist/server/   ← SSR 入口(Web Fetch 标准的 { fetch } handler)
+server.mjs     ← Node HTTP 适配器,把上面的 fetch handler 跑在 Node 上
+```
+
+启动入口是 `node server.mjs`,监听 `PORT`(默认 3000),静态资源由 `server.mjs` 直接服务,SSR 请求转给 TanStack Start。
+
+**本地验证:**
+```bash
+bun install
+bun run build
+node server.mjs        # 访问 http://localhost:3000/healthz 应返回 200
+```
+
+### 4. Zeabur + 国内云服务器(推荐路径)
 
 1. 把本仓库推到 GitHub。
-2. 在 **Zeabur** 创建一个 Service,关联此仓库。Zeabur 会自动识别 `Dockerfile`。
-3. 在 Zeabur 服务设置中粘贴上述环境变量。
+2. 在 **Zeabur** 创建一个 Service,关联此仓库。Zeabur 会自动识别根目录的 `Dockerfile`,构建后用 `node server.mjs` 启动。
+3. 在 Zeabur 服务设置中粘贴上述环境变量(`WECHAT_APPID` / `WECHAT_APPSECRET` / `RELAY_BASE_URL` / `CLIENTS_JSON`)。
 4. 绑定你的国内已备案域名 `b.com`,Zeabur 自动签发 HTTPS。
-5. 同样的镜像也可以推到阿里云 / 腾讯云 ACR,然后在 ECS 上 `docker run`。
+5. 同样的镜像也可以推到阿里云 / 腾讯云 ACR,然后在 ECS 上 `docker run -p 3000:3000 --env-file .env <image>`。
 
 > 微信开放平台审核要求域名已 ICP 备案,所以 `b.com` 必须是国内备案域名,服务也要部署在国内。Zeabur 在国内有可用区,或自行选阿里云 / 腾讯云 ECS。
 
-### 4. Nginx 反代示例(自建机)
+> **注意:** 不要用 Cloudflare Workers / Pages 部署 —— 会被微信开放平台审核拒(IP 在境外),`wrangler.jsonc` 已被移除。
+
+
+### 5. Nginx 反代示例(自建机)
 
 ```nginx
 server {
