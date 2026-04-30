@@ -15,7 +15,7 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 
 const clientDir = resolve(__dirname, "dist/client");
-const serverEntry = resolve(__dirname, "dist/server/index.js");
+const serverEntry = resolve(__dirname, "dist/server/server.js");
 
 if (!existsSync(serverEntry)) {
   console.error(`[server] SSR 入口不存在: ${serverEntry}`);
@@ -26,7 +26,7 @@ if (!existsSync(serverEntry)) {
 const mod = await import(serverEntry);
 const handler = mod.default?.fetch ?? mod.fetch;
 if (typeof handler !== "function") {
-  console.error("[server] dist/server/index.js 没有导出 fetch handler");
+  console.error("[server] dist/server/server.js 没有导出 fetch handler");
   process.exit(1);
 }
 
