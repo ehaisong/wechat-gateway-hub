@@ -1,0 +1,10 @@
+{
+  "$schema": "https://schema.zeabur.app/template.json",
+  "build": {
+    "type": "dockerfile",
+    "dockerfile": "Dockerfile"
+  },
+  "start": {
+    "command": "node server.mjs"
+  }
+}
