@@ -28,7 +28,6 @@ function json(status: number, body: unknown): Response {
 }
 
 export const Route = createFileRoute("/api/public/oauth/wechat/exchange")({
-  // @ts-expect-error TanStack Start server route block; types not yet exposed via react-router augmentation
   server: {
     handlers: {
       POST: async ({ request }: { request: Request }) => {
