@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as HealthzRouteImport } from './routes/healthz'
+import { Route as ErrorRouteImport } from './routes/error'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WechatCallbackRouteImport } from './routes/wechat.callback'
 import { Route as OauthWechatStartRouteImport } from './routes/oauth.wechat.start'
@@ -18,6 +19,11 @@ import { Route as ApiPublicOauthWechatExchangeRouteImport } from './routes/api.p
 const HealthzRoute = HealthzRouteImport.update({
   id: '/healthz',
   path: '/healthz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ErrorRoute = ErrorRouteImport.update({
+  id: '/error',
+  path: '/error',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -44,6 +50,7 @@ const ApiPublicOauthWechatExchangeRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/error': typeof ErrorRoute
   '/healthz': typeof HealthzRoute
   '/wechat/callback': typeof WechatCallbackRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/error': typeof ErrorRoute
   '/healthz': typeof HealthzRoute
   '/wechat/callback': typeof WechatCallbackRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
@@ -59,6 +67,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/error': typeof ErrorRoute
   '/healthz': typeof HealthzRoute
   '/wechat/callback': typeof WechatCallbackRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
@@ -68,6 +77,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/error'
     | '/healthz'
     | '/wechat/callback'
     | '/oauth/wechat/start'
@@ -75,6 +85,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/error'
     | '/healthz'
     | '/wechat/callback'
     | '/oauth/wechat/start'
@@ -82,6 +93,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/error'
     | '/healthz'
     | '/wechat/callback'
     | '/oauth/wechat/start'
@@ -90,6 +102,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ErrorRoute: typeof ErrorRoute
   HealthzRoute: typeof HealthzRoute
   WechatCallbackRoute: typeof WechatCallbackRoute
   OauthWechatStartRoute: typeof OauthWechatStartRoute
@@ -103,6 +116,13 @@ declare module '@tanstack/react-router' {
       path: '/healthz'
       fullPath: '/healthz'
       preLoaderRoute: typeof HealthzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/error': {
+      id: '/error'
+      path: '/error'
+      fullPath: '/error'
+      preLoaderRoute: typeof ErrorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -138,6 +158,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ErrorRoute: ErrorRoute,
   HealthzRoute: HealthzRoute,
   WechatCallbackRoute: WechatCallbackRoute,
   OauthWechatStartRoute: OauthWechatStartRoute,
