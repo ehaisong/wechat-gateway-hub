@@ -1,5 +1,0 @@
-{
-  "build_type": "dockerfile",
-  "dockerfile_path": "Dockerfile",
-  "start_command": "node server.mjs"
-}
