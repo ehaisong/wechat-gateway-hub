@@ -8,14 +8,9 @@ import { getClient } from "@/server/clients.server";
 import { getKV } from "@/server/kv.server";
 import { randomToken } from "@/server/crypto.server";
 import { exchangeCodeForToken, fetchUserInfo } from "@/server/wechat.server";
+import type { StateRecord } from "./oauth.wechat.start";
 
 const TICKET_TTL_SECONDS = 2 * 60;
-
-interface StateRecord {
-  client: string;
-  return_path: string;
-  created_at: number;
-}
 
 export interface TicketRecord {
   client: string;
@@ -66,7 +61,7 @@ export const Route = createFileRoute("/wechat/callback")({
 
         let token: Awaited<ReturnType<typeof exchangeCodeForToken>>;
         try {
-          token = await exchangeCodeForToken(code);
+          token = await exchangeCodeForToken(code, stateRec.flow);
         } catch (e) {
           console.error("[callback] code->token failed:", e);
           return errorRedirect("wechat_token_failed", "向微信换取 token 失败");
