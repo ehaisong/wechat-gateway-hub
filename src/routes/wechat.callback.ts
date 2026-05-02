@@ -124,6 +124,12 @@ export const Route = createFileRoute("/wechat/callback")({
           back.searchParams.set("return_path", stateRec.return_path);
         }
 
+        console.log(
+          `[callback] -> back to client=${stateRec.client} ` +
+            `target=${back.origin}${back.pathname} ticket=${ticket.slice(0, 8)}… ` +
+            `dt=${Date.now() - t0}ms`,
+        );
+
         return new Response(null, {
           status: 302,
           headers: {

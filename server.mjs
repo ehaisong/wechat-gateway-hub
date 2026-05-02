@@ -123,10 +123,18 @@ const server = createServer(async (req, res) => {
     const webRes = await handler(webReq);
     await writeWebResponse(res, webRes);
   } catch (e) {
-    console.error("[server] handler error:", e);
+    const stack = e instanceof Error ? e.stack || e.message : String(e);
+    console.error(`[server] handler error url=${req.url} method=${req.method}\n${stack}`);
     if (!res.headersSent) res.writeHead(500, { "Content-Type": "text/plain" });
     res.end("Internal Server Error");
   }
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[server] unhandledRejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[server] uncaughtException:", err);
 });
 
 server.listen(PORT, HOST, () => {
