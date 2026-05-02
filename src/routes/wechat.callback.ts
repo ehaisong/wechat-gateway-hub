@@ -42,37 +42,62 @@ export const Route = createFileRoute("/wechat/callback")({
   server: {
     handlers: {
       GET: async ({ request }: { request: Request }) => {
+        const t0 = Date.now();
         const url = new URL(request.url);
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");
+        const ua = request.headers.get("user-agent");
 
-        if (!state) return errorRedirect("missing_state", "缺少 state 参数");
-        // Atomic take: prevents replay of the same state.
+        console.log(
+          `[callback] incoming code=${code ? code.slice(0, 6) + "…" : "(none)"} ` +
+            `state=${state ? state.slice(0, 8) + "…" : "(none)"} ua="${ua ?? "-"}"`,
+        );
+
+        if (!state) {
+          console.warn("[callback] missing_state");
+          return errorRedirect("missing_state", "缺少 state 参数");
+        }
         const stateRec = await getKV().take<StateRecord>(`state:${state}`);
-        if (!stateRec) return errorRedirect("invalid_state", "state 不存在或已过期");
+        if (!stateRec) {
+          console.warn(`[callback] invalid_state state=${state.slice(0, 8)}…`);
+          return errorRedirect("invalid_state", "state 不存在或已过期");
+        }
+        console.log(
+          `[callback] state ok client=${stateRec.client} flow=${stateRec.flow} ` +
+            `return_path=${stateRec.return_path} age=${Date.now() - stateRec.created_at}ms`,
+        );
 
         if (!code) {
-          // User likely cancelled the authorization on WeChat.
+          console.warn("[callback] user_cancelled (no code)");
           return errorRedirect("user_cancelled", "用户取消了微信授权");
         }
 
         const client = getClient(stateRec.client);
-        if (!client) return errorRedirect("unknown_client", "来源站点已下线");
+        if (!client) {
+          console.warn(`[callback] unknown_client name="${stateRec.client}"`);
+          return errorRedirect("unknown_client", "来源站点已下线");
+        }
 
         let token: Awaited<ReturnType<typeof exchangeCodeForToken>>;
         try {
           token = await exchangeCodeForToken(code, stateRec.flow);
         } catch (e) {
-          console.error("[callback] code->token failed:", e);
-          return errorRedirect("wechat_token_failed", "向微信换取 token 失败");
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error(`[callback] code->token failed flow=${stateRec.flow} reason="${msg}"`, e);
+          return errorRedirect("wechat_token_failed", `向微信换取 token 失败: ${msg}`);
         }
+        console.log(
+          `[callback] token ok openid=${token.openid?.slice(0, 6)}… ` +
+            `unionid=${token.unionid ? "yes" : "no"} scope=${token.scope}`,
+        );
 
         let info: Awaited<ReturnType<typeof fetchUserInfo>> | null = null;
         try {
           info = await fetchUserInfo(token.access_token, token.openid);
+          console.log(`[callback] userinfo ok nickname="${info.nickname ?? ""}"`);
         } catch (e) {
-          // Userinfo failure is non-fatal — we can still hand back openid/unionid.
-          console.warn("[callback] userinfo failed, continuing with openid only:", e);
+          const msg = e instanceof Error ? e.message : String(e);
+          console.warn(`[callback] userinfo failed reason="${msg}" — 继续 openid-only`, e);
         }
 
         const ticket = randomToken(32);
@@ -98,6 +123,12 @@ export const Route = createFileRoute("/wechat/callback")({
         if (stateRec.return_path && stateRec.return_path !== "/") {
           back.searchParams.set("return_path", stateRec.return_path);
         }
+
+        console.log(
+          `[callback] -> back to client=${stateRec.client} ` +
+            `target=${back.origin}${back.pathname} ticket=${ticket.slice(0, 8)}… ` +
+            `dt=${Date.now() - t0}ms`,
+        );
 
         return new Response(null, {
           status: 302,
