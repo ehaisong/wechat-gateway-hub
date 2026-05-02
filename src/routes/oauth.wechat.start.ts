@@ -41,12 +41,13 @@ export const Route = createFileRoute("/oauth/wechat/start")({
   server: {
     handlers: {
       GET: async ({ request }: { request: Request }) => {
+        const t0 = Date.now();
         const url = new URL(request.url);
         const clientName = url.searchParams.get("client") ?? "";
         const returnPath = sanitizeReturnPath(url.searchParams.get("return_path"));
         const ua = request.headers.get("user-agent");
+        const referer = request.headers.get("referer");
 
-        // 决定走哪一套登录:?flow= 显式 > UA 检测
         const forced = url.searchParams.get("flow");
         let flow: WechatFlow;
         if (forced === "mp" || forced === "web") {
@@ -55,13 +56,31 @@ export const Route = createFileRoute("/oauth/wechat/start")({
           flow = isWeChatBrowser(ua) ? "mp" : "web";
         }
 
+        console.log(
+          `[start] incoming client=${clientName} flow=${flow} forced=${forced ?? "-"} ` +
+            `return_path=${returnPath} isWeChatUA=${isWeChatBrowser(ua)} ` +
+            `referer=${referer ?? "-"} ua="${ua ?? "-"}"`,
+        );
+
+        // 配置自检日志（不打印 secret 值）
+        console.log(
+          `[start] env check: RELAY_BASE_URL=${process.env.RELAY_BASE_URL ?? "(unset)"} ` +
+            `WECHAT_APPID=${process.env.WECHAT_APPID ? "set" : "MISSING"} ` +
+            `WECHAT_APPSECRET=${process.env.WECHAT_APPSECRET ? "set" : "MISSING"} ` +
+            `WECHAT_MP_APPID=${process.env.WECHAT_MP_APPID ? "set" : "MISSING"} ` +
+            `WECHAT_MP_APPSECRET=${process.env.WECHAT_MP_APPSECRET ? "set" : "MISSING"} ` +
+            `CLIENTS_JSON=${process.env.CLIENTS_JSON ? "set" : "MISSING"}`,
+        );
+
         const client = getClient(clientName);
         if (!client) {
+          console.warn(`[start] unknown_client name="${clientName}"`);
           return errorRedirect("unknown_client", `Unknown or unconfigured client: ${clientName}`);
         }
 
         const baseUrl = (process.env.RELAY_BASE_URL ?? "").replace(/\/$/, "");
         if (!baseUrl) {
+          console.error("[start] misconfigured: RELAY_BASE_URL is empty");
           return errorRedirect("misconfigured", "RELAY_BASE_URL is not configured on the relay");
         }
 
@@ -82,14 +101,24 @@ export const Route = createFileRoute("/oauth/wechat/start")({
               ? buildMpAuthorizeUrl(state, callbackUrl)
               : buildQrConnectUrl(state, callbackUrl);
         } catch (e) {
-          console.error("[start] failed to build authorize URL:", e);
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error(
+            `[start] failed to build authorize URL flow=${flow} reason="${msg}"`,
+            e,
+          );
           return errorRedirect(
             "misconfigured",
             flow === "mp"
-              ? "公众号(WECHAT_MP_*)凭据未配置"
-              : "网站应用(WECHAT_*)凭据未配置",
+              ? `公众号(WECHAT_MP_*)凭据未配置: ${msg}`
+              : `网站应用(WECHAT_*)凭据未配置: ${msg}`,
           );
         }
+
+        console.log(
+          `[start] -> redirect flow=${flow} state=${state.slice(0, 8)}… ` +
+            `callback=${callbackUrl} target_host=${new URL(target).host} ` +
+            `dt=${Date.now() - t0}ms`,
+        );
 
         return new Response(null, {
           status: 302,
