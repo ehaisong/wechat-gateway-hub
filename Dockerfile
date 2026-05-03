@@ -12,9 +12,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
-# SSR bundle 把生产依赖标为 external,需要在运行镜像里安装
+# 关键: 直接复用 build 阶段的 node_modules (bun 按 lockfile 装),
+# 避免运行时再跑 `npm install` 把 ^x.y.z 解析成更新的、与 SSR bundle 不匹配的版本
+# (例: @tanstack/react-start 1.167.16 vs 1.167.62 会导致 SSR dehydrate 时
+# `Cannot read properties of undefined (reading 'state')` -> 全部 React 路由 500)。
 COPY package.json ./
-RUN npm install --omit=dev --no-audit --no-fund
+COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/server.mjs ./server.mjs
 EXPOSE 3000
