@@ -60,7 +60,7 @@ export async function requestOtp(sid: string, phoneInput: string): Promise<Reque
   // KV 只存 hash(code + sid)
   const codeHash = await sha256Hex(`${code}.${sid}`);
   const otpKey = `otp:${sid}:${phone}`;
-  await kv.set<OtpRecord>(otpKey, { codeHash, attempts: 0, created_at: Date.now() }, OTP_TTL_SECONDS);
+  await kv.set(otpKey, { codeHash, attempts: 0, created_at: Date.now() }, OTP_TTL_SECONDS);
   await kv.set(cdKey, { at: Date.now() }, COOLDOWN_SECONDS);
 
   const signName = process.env.ALIYUN_SMS_SIGN_NAME;
@@ -122,7 +122,7 @@ export async function verifyOtp(sid: string, phoneInput: string, codeInput: stri
   if (!timingSafeEqual(expected, rec.codeHash)) {
     rec.attempts += 1;
     // 续期 = 不重置 TTL 的简化做法: 重新写入会刷新 TTL, 但安全模型是 5 分钟内最多 5 次, 接受刷新
-    await kv.set<OtpRecord>(otpKey, rec, OTP_TTL_SECONDS);
+    await kv.set(otpKey, rec, OTP_TTL_SECONDS);
     console.log(`[otp] verify bad_code phone=${maskPhone(phone)} attempts=${rec.attempts}`);
     return { ok: false, error: "bad_code" };
   }
