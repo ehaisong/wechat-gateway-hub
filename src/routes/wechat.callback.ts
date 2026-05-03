@@ -90,6 +90,7 @@ export const Route = createFileRoute("/wechat/callback")({
 
         const ticket = randomToken(32);
         const record: TicketRecord = {
+          provider: "wechat",
           client: stateRec.client,
           used: false,
           created_at: Date.now(),
@@ -108,6 +109,7 @@ export const Route = createFileRoute("/wechat/callback")({
 
         const back = new URL(client.done_path, client.origin);
         back.searchParams.set("ticket", ticket);
+        back.searchParams.set("provider", "wechat");
         if (stateRec.return_path && stateRec.return_path !== "/") {
           back.searchParams.set("return_path", stateRec.return_path);
         }
