@@ -18,6 +18,7 @@ import { Route as OauthWechatStartRouteImport } from './routes/oauth.wechat.star
 import { Route as OauthPhoneStartRouteImport } from './routes/oauth.phone.start'
 import { Route as ApiSmsVerifyRouteImport } from './routes/api.sms.verify'
 import { Route as ApiSmsSendRouteImport } from './routes/api.sms.send'
+import { Route as ApiPublicOauthExchangeRouteImport } from './routes/api.public.oauth.exchange'
 import { Route as ApiPublicOauthWechatExchangeRouteImport } from './routes/api.public.oauth.wechat.exchange'
 
 const HealthzRoute = HealthzRouteImport.update({
@@ -65,6 +66,11 @@ const ApiSmsSendRoute = ApiSmsSendRouteImport.update({
   path: '/api/sms/send',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOauthExchangeRoute = ApiPublicOauthExchangeRouteImport.update({
+  id: '/api/public/oauth/exchange',
+  path: '/api/public/oauth/exchange',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOauthWechatExchangeRoute =
   ApiPublicOauthWechatExchangeRouteImport.update({
     id: '/api/public/oauth/wechat/exchange',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/api/sms/verify': typeof ApiSmsVerifyRoute
   '/oauth/phone/start': typeof OauthPhoneStartRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/exchange': typeof ApiPublicOauthExchangeRoute
   '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRoutesByTo {
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/api/sms/verify': typeof ApiSmsVerifyRoute
   '/oauth/phone/start': typeof OauthPhoneStartRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/exchange': typeof ApiPublicOauthExchangeRoute
   '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRoutesById {
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/api/sms/verify': typeof ApiSmsVerifyRoute
   '/oauth/phone/start': typeof OauthPhoneStartRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/exchange': typeof ApiPublicOauthExchangeRoute
   '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRouteTypes {
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/api/sms/verify'
     | '/oauth/phone/start'
     | '/oauth/wechat/start'
+    | '/api/public/oauth/exchange'
     | '/api/public/oauth/wechat/exchange'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/api/sms/verify'
     | '/oauth/phone/start'
     | '/oauth/wechat/start'
+    | '/api/public/oauth/exchange'
     | '/api/public/oauth/wechat/exchange'
   id:
     | '__root__'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/api/sms/verify'
     | '/oauth/phone/start'
     | '/oauth/wechat/start'
+    | '/api/public/oauth/exchange'
     | '/api/public/oauth/wechat/exchange'
   fileRoutesById: FileRoutesById
 }
@@ -158,6 +170,7 @@ export interface RootRouteChildren {
   ApiSmsVerifyRoute: typeof ApiSmsVerifyRoute
   OauthPhoneStartRoute: typeof OauthPhoneStartRoute
   OauthWechatStartRoute: typeof OauthWechatStartRoute
+  ApiPublicOauthExchangeRoute: typeof ApiPublicOauthExchangeRoute
   ApiPublicOauthWechatExchangeRoute: typeof ApiPublicOauthWechatExchangeRoute
 }
 
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSmsSendRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/oauth/exchange': {
+      id: '/api/public/oauth/exchange'
+      path: '/api/public/oauth/exchange'
+      fullPath: '/api/public/oauth/exchange'
+      preLoaderRoute: typeof ApiPublicOauthExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/oauth/wechat/exchange': {
       id: '/api/public/oauth/wechat/exchange'
       path: '/api/public/oauth/wechat/exchange'
@@ -246,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSmsVerifyRoute: ApiSmsVerifyRoute,
   OauthPhoneStartRoute: OauthPhoneStartRoute,
   OauthWechatStartRoute: OauthWechatStartRoute,
+  ApiPublicOauthExchangeRoute: ApiPublicOauthExchangeRoute,
   ApiPublicOauthWechatExchangeRoute: ApiPublicOauthWechatExchangeRoute,
 }
 export const routeTree = rootRouteImport
