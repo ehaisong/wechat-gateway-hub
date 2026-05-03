@@ -9,24 +9,12 @@ import { getKV } from "@/server/kv.server";
 import { randomToken } from "@/server/crypto.server";
 import { exchangeCodeForToken, fetchUserInfo } from "@/server/wechat.server";
 import type { StateRecord } from "./oauth.wechat.start";
+import type { TicketRecord } from "@/server/ticket.server";
 
 const TICKET_TTL_SECONDS = 2 * 60;
 
-export interface TicketRecord {
-  client: string;
-  used: boolean;
-  created_at: number;
-  user: {
-    openid: string;
-    unionid?: string;
-    nickname?: string;
-    avatar?: string;
-    sex?: number;
-    province?: string;
-    city?: string;
-    country?: string;
-  };
-}
+// 兼容旧引用 (api.public.oauth.wechat.exchange.ts 仍 import 此名称)
+export type { TicketRecord } from "@/server/ticket.server";
 
 function errorRedirect(code: string, msg: string): Response {
   return new Response(null, {
@@ -102,6 +90,7 @@ export const Route = createFileRoute("/wechat/callback")({
 
         const ticket = randomToken(32);
         const record: TicketRecord = {
+          provider: "wechat",
           client: stateRec.client,
           used: false,
           created_at: Date.now(),
@@ -120,6 +109,7 @@ export const Route = createFileRoute("/wechat/callback")({
 
         const back = new URL(client.done_path, client.origin);
         back.searchParams.set("ticket", ticket);
+        back.searchParams.set("provider", "wechat");
         if (stateRec.return_path && stateRec.return_path !== "/") {
           back.searchParams.set("return_path", stateRec.return_path);
         }

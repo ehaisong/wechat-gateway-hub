@@ -13,7 +13,12 @@ import { Route as HealthzRouteImport } from './routes/healthz'
 import { Route as ErrorRouteImport } from './routes/error'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WechatCallbackRouteImport } from './routes/wechat.callback'
+import { Route as LoginPhoneRouteImport } from './routes/login.phone'
 import { Route as OauthWechatStartRouteImport } from './routes/oauth.wechat.start'
+import { Route as OauthPhoneStartRouteImport } from './routes/oauth.phone.start'
+import { Route as ApiSmsVerifyRouteImport } from './routes/api.sms.verify'
+import { Route as ApiSmsSendRouteImport } from './routes/api.sms.send'
+import { Route as ApiPublicOauthExchangeRouteImport } from './routes/api.public.oauth.exchange'
 import { Route as ApiPublicOauthWechatExchangeRouteImport } from './routes/api.public.oauth.wechat.exchange'
 
 const HealthzRoute = HealthzRouteImport.update({
@@ -36,9 +41,34 @@ const WechatCallbackRoute = WechatCallbackRouteImport.update({
   path: '/wechat/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginPhoneRoute = LoginPhoneRouteImport.update({
+  id: '/login/phone',
+  path: '/login/phone',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OauthWechatStartRoute = OauthWechatStartRouteImport.update({
   id: '/oauth/wechat/start',
   path: '/oauth/wechat/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthPhoneStartRoute = OauthPhoneStartRouteImport.update({
+  id: '/oauth/phone/start',
+  path: '/oauth/phone/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSmsVerifyRoute = ApiSmsVerifyRouteImport.update({
+  id: '/api/sms/verify',
+  path: '/api/sms/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSmsSendRoute = ApiSmsSendRouteImport.update({
+  id: '/api/sms/send',
+  path: '/api/sms/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthExchangeRoute = ApiPublicOauthExchangeRouteImport.update({
+  id: '/api/public/oauth/exchange',
+  path: '/api/public/oauth/exchange',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicOauthWechatExchangeRoute =
@@ -52,16 +82,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/error': typeof ErrorRoute
   '/healthz': typeof HealthzRoute
+  '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
+  '/api/sms/send': typeof ApiSmsSendRoute
+  '/api/sms/verify': typeof ApiSmsVerifyRoute
+  '/oauth/phone/start': typeof OauthPhoneStartRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/exchange': typeof ApiPublicOauthExchangeRoute
   '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/error': typeof ErrorRoute
   '/healthz': typeof HealthzRoute
+  '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
+  '/api/sms/send': typeof ApiSmsSendRoute
+  '/api/sms/verify': typeof ApiSmsVerifyRoute
+  '/oauth/phone/start': typeof OauthPhoneStartRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/exchange': typeof ApiPublicOauthExchangeRoute
   '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRoutesById {
@@ -69,8 +109,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/error': typeof ErrorRoute
   '/healthz': typeof HealthzRoute
+  '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
+  '/api/sms/send': typeof ApiSmsSendRoute
+  '/api/sms/verify': typeof ApiSmsVerifyRoute
+  '/oauth/phone/start': typeof OauthPhoneStartRoute
   '/oauth/wechat/start': typeof OauthWechatStartRoute
+  '/api/public/oauth/exchange': typeof ApiPublicOauthExchangeRoute
   '/api/public/oauth/wechat/exchange': typeof ApiPublicOauthWechatExchangeRoute
 }
 export interface FileRouteTypes {
@@ -79,24 +124,39 @@ export interface FileRouteTypes {
     | '/'
     | '/error'
     | '/healthz'
+    | '/login/phone'
     | '/wechat/callback'
+    | '/api/sms/send'
+    | '/api/sms/verify'
+    | '/oauth/phone/start'
     | '/oauth/wechat/start'
+    | '/api/public/oauth/exchange'
     | '/api/public/oauth/wechat/exchange'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/error'
     | '/healthz'
+    | '/login/phone'
     | '/wechat/callback'
+    | '/api/sms/send'
+    | '/api/sms/verify'
+    | '/oauth/phone/start'
     | '/oauth/wechat/start'
+    | '/api/public/oauth/exchange'
     | '/api/public/oauth/wechat/exchange'
   id:
     | '__root__'
     | '/'
     | '/error'
     | '/healthz'
+    | '/login/phone'
     | '/wechat/callback'
+    | '/api/sms/send'
+    | '/api/sms/verify'
+    | '/oauth/phone/start'
     | '/oauth/wechat/start'
+    | '/api/public/oauth/exchange'
     | '/api/public/oauth/wechat/exchange'
   fileRoutesById: FileRoutesById
 }
@@ -104,8 +164,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ErrorRoute: typeof ErrorRoute
   HealthzRoute: typeof HealthzRoute
+  LoginPhoneRoute: typeof LoginPhoneRoute
   WechatCallbackRoute: typeof WechatCallbackRoute
+  ApiSmsSendRoute: typeof ApiSmsSendRoute
+  ApiSmsVerifyRoute: typeof ApiSmsVerifyRoute
+  OauthPhoneStartRoute: typeof OauthPhoneStartRoute
   OauthWechatStartRoute: typeof OauthWechatStartRoute
+  ApiPublicOauthExchangeRoute: typeof ApiPublicOauthExchangeRoute
   ApiPublicOauthWechatExchangeRoute: typeof ApiPublicOauthWechatExchangeRoute
 }
 
@@ -139,11 +204,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WechatCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login/phone': {
+      id: '/login/phone'
+      path: '/login/phone'
+      fullPath: '/login/phone'
+      preLoaderRoute: typeof LoginPhoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/oauth/wechat/start': {
       id: '/oauth/wechat/start'
       path: '/oauth/wechat/start'
       fullPath: '/oauth/wechat/start'
       preLoaderRoute: typeof OauthWechatStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/phone/start': {
+      id: '/oauth/phone/start'
+      path: '/oauth/phone/start'
+      fullPath: '/oauth/phone/start'
+      preLoaderRoute: typeof OauthPhoneStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sms/verify': {
+      id: '/api/sms/verify'
+      path: '/api/sms/verify'
+      fullPath: '/api/sms/verify'
+      preLoaderRoute: typeof ApiSmsVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sms/send': {
+      id: '/api/sms/send'
+      path: '/api/sms/send'
+      fullPath: '/api/sms/send'
+      preLoaderRoute: typeof ApiSmsSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/exchange': {
+      id: '/api/public/oauth/exchange'
+      path: '/api/public/oauth/exchange'
+      fullPath: '/api/public/oauth/exchange'
+      preLoaderRoute: typeof ApiPublicOauthExchangeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/oauth/wechat/exchange': {
@@ -160,8 +260,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ErrorRoute: ErrorRoute,
   HealthzRoute: HealthzRoute,
+  LoginPhoneRoute: LoginPhoneRoute,
   WechatCallbackRoute: WechatCallbackRoute,
+  ApiSmsSendRoute: ApiSmsSendRoute,
+  ApiSmsVerifyRoute: ApiSmsVerifyRoute,
+  OauthPhoneStartRoute: OauthPhoneStartRoute,
   OauthWechatStartRoute: OauthWechatStartRoute,
+  ApiPublicOauthExchangeRoute: ApiPublicOauthExchangeRoute,
   ApiPublicOauthWechatExchangeRoute: ApiPublicOauthWechatExchangeRoute,
 }
 export const routeTree = rootRouteImport

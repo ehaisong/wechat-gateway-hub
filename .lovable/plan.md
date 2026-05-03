@@ -1,101 +1,157 @@
-## 失败原因（确认）
+## 目标
 
-Zeabur 构建日志显示两件事：
+在现有微信登录中转站 `wx.lovclaw.com` 上新增「手机号 + 短信验证码」登录通道，复用现有 ticket 机制：
+- 使用阿里云短信服务（Dysmsapi）发码 + 中转站本地校验
+- 中转站托管登录页 `/login/phone`
+- 业务站只需添加一种"登录入口" `/oauth/phone/start?client=...`，回调形态与微信登录完全一致：`done_path?ticket=...`
+- 回兑 payload 简洁：`{provider:"phone", phone:"+8613800001111", issued_at}`
 
-1. `vite build` 实际产物在 `dist/client/` 和 `dist/server/`（看日志里 `dist/server/index.js`、`dist/server/worker-entry-*.js`、`dist/server/wrangler.json`）。
-2. Dockerfile 却去 `COPY --from=build /app/.output ./.output` —— `.output` 目录根本不存在，于是 `failed to calculate checksum of ref ... "/app/.output": not found`，整个镜像构建终止。
+## 整体流程
 
-但**只改 Dockerfile 路径还不够**。当前项目用的是 `@lovable.dev/vite-tanstack-config`，它内置 `@cloudflare/vite-plugin`，把 TanStack Start 编译成了 **Cloudflare Worker** 格式（入口 `dist/server/worker-entry-*.js`，配套 `wrangler.json`）。这种产物：
+```text
+业务站 "手机号登录" 按钮
+  └─ 302 -> https://wx.lovclaw.com/oauth/phone/start?client=a&return_path=/dashboard
+      └─ 302 -> /login/phone?sid=<state>           (中转站托管页, 同源)
+          ├─ 用户输入手机号 -> POST /api/sms/send {sid, phone, captcha?}
+          │   └─ 中转站调用阿里云 SMS 发码, 写入 KV
+          ├─ 用户输入验证码 -> POST /api/sms/verify {sid, phone, code}
+          │   └─ 校验通过, 签发 ticket, 返回 {ticket, redirect}
+          └─ 前端 location.replace(redirect)
+              └─ 302 -> https://a.com/login/wechat-done?ticket=...&provider=phone
 
-- 入口是 `export default { fetch(request, env, ctx) }`，不是 `listen(port)`。
-- 依赖 Workers 运行时全局对象，直接 `node dist/server/index.js` 起不来。
-- 你的目标是部署到**国内云服务器**，必须是标准 Node HTTP 服务，跟 Workers 模式根本性不兼容。
-
-所以根因是：**构建管线确实默认是 Cloudflare Workers**，需要切到 Node 服务端模式，而且 Dockerfile 也要跟着改。
-
-## 修复方案
-
-### 1. 切换构建目标为 Node 服务端
-
-替换 `vite.config.ts`，不再用 `@lovable.dev/vite-tanstack-config` 默认导出（它强绑 cloudflare 插件），改成直接组合 TanStack Start + React + Tailwind + tsconfig-paths，**不引入 `@cloudflare/vite-plugin`**：
-
-```ts
-// vite.config.ts
-import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
-
-export default defineConfig({
-  plugins: [
-    tsConfigPaths({ projects: ["./tsconfig.json"] }),
-    tailwindcss(),
-    tanstackStart({
-      target: "node-server",      // 关键：产出标准 Node 服务
-      customViteReactPlugin: true,
-    }),
-    viteReact(),
-  ],
-  server: { port: 3000, host: true },
-});
+业务站后端 POST https://wx.lovclaw.com/api/public/oauth/exchange
+  body: { ticket, client, client_secret }
+  resp: { provider:"phone", phone:"+8613800001111", issued_at }
 ```
 
-`target: "node-server"` 是 TanStack Start 提供的 nitro preset，构建后会产出 **`.output/server/index.mjs`** —— 一个标准 Node HTTP 服务器，可以直接 `node` 启动，不依赖任何 Workers 运行时。
+要点：
+- 业务站现有 `/login/wechat-done` 页面只需扩展兼容 `provider=phone`，无需新做页面（建议起一个语义化通用名 `/login/done`，但向后兼容 `wechat-done`）。
+- 兑换接口复用同一个 endpoint，按 `provider` 字段区分 payload，业务站一处接入。
 
-### 2. 删除 Cloudflare 相关文件 / 依赖
+## 新增/改动文件
 
-- 删除 `wrangler.jsonc`（指向 worker-entry，国内服务器用不上，留着会让人误解）。
-- 从 `package.json` 移除 `@cloudflare/vite-plugin` 依赖。
-- 中转站本身不依赖任何 Workers 特性（KV、crypto.subtle、fetch 都是 Node 18+ 原生的），切到 Node 没有副作用。
+### 一、阿里云 SMS 客户端（新增）
+`src/server/aliyun-sms.server.ts`
+- 实现阿里云 RPC 风格 v3 (Dysmsapi 2017-05-25) `SendSms` 签名（HMAC-SHA1，POPv3）
+- 不引入 `@alicloud/*` SDK（含 Node 原生依赖、Worker 跑不动），用纯 fetch + Web Crypto 自实现签名
+- 入参：`{ phone, code, signName, templateCode, templateParam:{code} }`
+- 出参：`{ ok, requestId, bizId?, code, message }`
+- 失败抛业务错误（含 aliyun Code/Message）
 
-### 3. 修复 Dockerfile（与新构建产物对齐）
+环境变量：
+- `ALIYUN_SMS_ACCESS_KEY_ID`
+- `ALIYUN_SMS_ACCESS_KEY_SECRET`
+- `ALIYUN_SMS_SIGN_NAME`（短信签名，例如「轻爪科技」）
+- `ALIYUN_SMS_TEMPLATE_CODE`（模板 CODE，例如 `SMS_123456789`）
+- `ALIYUN_SMS_REGION`（默认 `cn-hangzhou`，endpoint `dysmsapi.aliyuncs.com`）
 
-```dockerfile
-# build stage
-FROM oven/bun:1 AS build
-WORKDIR /app
-COPY package.json bun.lockb* ./
-RUN bun install --frozen-lockfile || bun install
-COPY . .
-RUN bun run build
+### 二、手机号验证码业务层（新增）
+`src/server/phone-otp.server.ts`
+封装 KV 操作 + 限流 + 校验：
+- `requestOtp(sid, phone, ip)`：
+  - 校验 phone 格式（默认中国大陆 `1[3-9]\d{9}`，可加 E.164 兼容）
+  - 限流：
+    - `rl:phone:<phone>` 60s 内只允许 1 次
+    - `rl:phone-day:<phone>` 24h 内最多 10 次
+    - `rl:ip:<ip>` 5 分钟内最多 5 次
+  - 生成 6 位随机 code（`crypto.getRandomValues`）
+  - 写入 `otp:<sid>:<phone>` = `{codeHash, attempts:0, exp:5min}`，TTL 300s
+  - 调用阿里云发送
+- `verifyOtp(sid, phone, code)`：
+  - 取 `otp:<sid>:<phone>`
+  - `attempts++`，>=5 直接删除并返回 `too_many_attempts`
+  - 比对 sha256(code+sid)，成功则删除并返回 ok
+- code 在 KV 中只存 hash，避免 KV 泄露 = 验证码泄露
 
-# runtime stage
-FROM node:20-alpine AS runtime
-WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOST=0.0.0.0
-# node-server preset 产物在 .output/
-COPY --from=build /app/.output ./.output
-EXPOSE 3000
-CMD ["node", ".output/server/index.mjs"]
-```
+### 三、起点路由（新增）
+`src/routes/oauth.phone.start.ts` (`/oauth/phone/start`)
+与 `oauth.wechat.start.ts` 结构对称：
+- 校验 `client`、`return_path`
+- 创建 `state` 记录写 KV：`{client, return_path, provider:"phone", created_at}`，TTL 10 分钟
+- 302 到同站 `/login/phone?sid=<state>`
 
-如果切换后实测构建产物路径不同（少数版本会落在 `.output/server/index.js`），README 里也注明备用 CMD。
+### 四、托管登录页（新增 SSR + 客户端）
+`src/routes/login.phone.tsx`
+- SSR 校验 `sid` 存在且未过期，否则渲染错误页
+- 渲染极简表单（用现有 shadcn `Input` `Button`）：
+  - Step 1: 手机号 + 「发送验证码」按钮
+  - Step 2: 6 位验证码输入（`InputOTP`）+ 「登录」按钮
+  - 60s 倒计时 + 错误提示 + loading 态
+- 全部走 fetch 调下面两个 API；成功后用返回的 redirect URL 跳走
 
-### 4. 验证清单（部署前自检）
+### 五、API 路由（新增）
+`src/routes/api.sms.send.ts` (`/api/sms/send`)
+- 仅同源调用，校验 Origin/Referer 与 `RELAY_BASE_URL` 一致（防外站滥用）
+- body: `{sid, phone}`，Zod 校验
+- 取出 IP（`x-forwarded-for` 第一个）做 IP 限流
+- 调 `requestOtp`
+- resp: `{ok:true, cooldown:60}` 或 `{ok:false, error:"rate_limited", retry_after}`
 
-- 本地 `bun run build` 后确认 `.output/server/index.mjs` 存在。
-- `node .output/server/index.mjs` 在本机能起服务，`curl localhost:3000/healthz` 返回 200。
-- 镜像内不出现 `dist/server/worker-entry-*.js` 或 `wrangler.json`。
+`src/routes/api.sms.verify.ts` (`/api/sms/verify`)
+- 同源校验
+- body: `{sid, phone, code}`
+- 取出 sid 对应 state（不消费），校验存在 + provider==="phone"
+- 调 `verifyOtp`
+- 成功：
+  - 签发 `ticket` 写 KV `ticket:<ticket>` = `{client, provider:"phone", phone:"+86xxx", created_at}`，TTL 2 分钟
+  - 消费 state（删除）
+  - 返回 `{ok:true, redirect:"https://a.com/login/wechat-done?ticket=...&provider=phone"}`
+- 失败：`{ok:false, error:"bad_code"|"expired"|"too_many_attempts"}`
 
-### 5. Zeabur 端配置提醒（写进 README）
+### 六、改动现有文件
 
-- Zeabur 项目设置里把环境变量补齐：`WECHAT_APPID`、`WECHAT_APPSECRET`、`RELAY_BASE_URL`、`CLIENTS_JSON`。
-- Zeabur 自动识别仓库根 `Dockerfile`，不需要额外的 `zeabur.json`。
-- 国内云服务器复用同一个镜像即可，前面挂 Nginx + HTTPS。
+`src/routes/wechat.callback.ts`
+- 把 `TicketRecord` 类型移到 `src/server/ticket.server.ts`，新增 `provider:"wechat"|"phone"` 字段；微信路径写入时补 `provider:"wechat"`
+- `done_path?ticket=...` 后追加 `&provider=wechat`（业务站无需依赖也可用）
 
-## 不做的事
+`src/routes/api.public.oauth.wechat.exchange.ts`
+- 改名/新增同义路由 `src/routes/api.public.oauth.exchange.ts` (`/api/public/oauth/exchange`)，同时保留旧路径作为别名 302 / 双导出，避免破坏 66cai.site
+- 响应根据 `provider` 分支：
+  - `wechat`：原样
+  - `phone`：`{provider:"phone", phone, issued_at}`
 
-- 不保留 Cloudflare Workers 双轨（你明确要国内部署，留着只会再次踩坑）。
-- 不改业务代码（路由、KV、微信调用全部不动，它们都是运行时无关的）。
-- 不引入新的 npm 包，只删 `@cloudflare/vite-plugin`。
+`src/routes/healthz.ts`
+- env 自检追加 5 项：`ALIYUN_SMS_ACCESS_KEY_ID/SECRET/SIGN_NAME/TEMPLATE_CODE/REGION`
 
-## 交付物
+`src/server/clients.server.ts`
+- 无需改动（仍用同一份 client 白名单）
 
-- 修改 `vite.config.ts`（切到 `node-server` preset，移除 cloudflare 插件链）
-- 修改 `Dockerfile`（路径对齐 `.output/server/index.mjs`）
-- 删除 `wrangler.jsonc`
-- 修改 `package.json`（移除 `@cloudflare/vite-plugin`）
-- 更新 `README.md` 部署章节（Zeabur 重新部署步骤、环境变量清单、本地验证命令）
+`.env.example`
+- 追加 5 项阿里云配置
+
+### 七、日志
+所有新增端点统一加 `[phone-start] / [phone-page] / [sms-send] / [sms-verify] / [aliyun]` 前缀，记录：
+- sid 前 8 位、phone 脱敏（`138****1111`）、IP、UA、限流命中、阿里云 requestId、耗时
+- 不打印 code / accessKeySecret
+
+## 业务站接入提示词（产出物）
+
+最后给一段简短提示词复制给 66cai.site 项目，要点：
+1. 新增按钮「手机号登录」，跳 `https://wx.lovclaw.com/oauth/phone/start?client=66cai&return_path=...`
+2. `/login/wechat-done` 页面接收 `?ticket=...&provider=phone|wechat`，POST 到自家后端
+3. 自家后端调 `POST https://wx.lovclaw.com/api/public/oauth/exchange { ticket, client, client_secret }`，按 `provider` 分支：phone → 用 phone upsert 用户；wechat → 沿用现状
+
+## 用户需要做的事
+
+1. 阿里云控制台准备：
+   - RAM 子账号 + AK/SK，授权 `AliyunDysmsFullAccess`
+   - 短信签名（已审核通过）
+   - 短信模板（变量占位 `${code}`，例如：`您的验证码是${code}，5 分钟内有效，请勿泄露。`）
+2. 在 Zeabur 添加 5 个环境变量（见上）
+3. 重新部署并访问 `https://wx.lovclaw.com/healthz` 确认 env 全为 true
+
+## 安全/合规小结
+
+- code 只存 hash + 一次性 + TTL + 5 次尝试上限
+- 三层限流：单号 60s / 单号 24h / 单 IP 5min
+- 同源校验防止 CSRF + 第三方刷接口
+- ticket 一次性、2 分钟过期、client_secret 二次校验、payload 不进浏览器
+- 日志全程脱敏
+
+## 不在本次范围
+
+- 图形验证码（已留好 send 接口的 `captcha?` 字段，后续接入 hCaptcha/腾讯云验证码无需改协议）
+- 国际号段（默认仅中国大陆，阿里云国际短信需另买产品另签名）
+- 多语言 UI（先中文）
+
+确认无误后我切到执行模式实施。如果需要，我可以先只实现「中转站本身」，业务站接入文档我会同步生成。

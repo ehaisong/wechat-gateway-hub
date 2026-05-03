@@ -12,6 +12,11 @@ export const Route = createFileRoute("/healthz")({
           WECHAT_MP_APPSECRET: !!process.env.WECHAT_MP_APPSECRET,
           RELAY_BASE_URL: process.env.RELAY_BASE_URL ?? null,
           CLIENTS_JSON: !!process.env.CLIENTS_JSON,
+          ALIYUN_SMS_ACCESS_KEY_ID: !!process.env.ALIYUN_SMS_ACCESS_KEY_ID,
+          ALIYUN_SMS_ACCESS_KEY_SECRET: !!process.env.ALIYUN_SMS_ACCESS_KEY_SECRET,
+          ALIYUN_SMS_SIGN_NAME: !!process.env.ALIYUN_SMS_SIGN_NAME,
+          ALIYUN_SMS_TEMPLATE_CODE: !!process.env.ALIYUN_SMS_TEMPLATE_CODE,
+          ALIYUN_SMS_REGION: process.env.ALIYUN_SMS_REGION ?? null,
         };
         return new Response(
           JSON.stringify({
