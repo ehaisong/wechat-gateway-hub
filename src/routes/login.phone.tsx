@@ -5,7 +5,7 @@ import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+
 
 export const Route = createFileRoute("/login/phone")({
   head: () => ({
@@ -114,84 +114,49 @@ function PhoneLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-6">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold tracking-tight text-center">手机号登录</h1>
-        <p className="mt-2 text-sm text-muted-foreground text-center">
-          {step === "phone" ? "请输入手机号获取验证码" : `验证码已发送至 ${phone}`}
-        </p>
-
-        <div className="mt-8 space-y-4">
-          {step === "phone" && (
-            <>
-              <Input
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="手机号"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                disabled={busy}
-              />
-              <Button className="w-full" onClick={send} disabled={busy || cooldown > 0}>
-                {busy ? "发送中…" : cooldown > 0 ? `${cooldown}s 后重试` : "获取验证码"}
-              </Button>
-            </>
-          )}
-
-          {step === "code" && (
-            <>
-              <div className="flex justify-center">
-                <InputOTP
-                  maxLength={6}
-                  value={code}
-                  onChange={(v) => {
-                    setCode(v);
-                    if (v.length === 6 && !busy) verify(v);
-                  }}
-                  disabled={busy}
-                >
-                  <InputOTPGroup>
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot key={i} index={i} />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={() => {
-                    setStep("phone");
-                    setCode("");
-                    setErr(null);
-                  }}
-                  disabled={busy}
-                >
-                  改用其它手机号
-                </button>
-                <button
-                  type="button"
-                  className="text-primary disabled:text-muted-foreground"
-                  onClick={send}
-                  disabled={busy || cooldown > 0}
-                >
-                  {cooldown > 0 ? `${cooldown}s 后重发` : "重新发送"}
-                </button>
-              </div>
-            </>
-          )}
-
-          {err && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive text-center">
-              {err}
-            </div>
-          )}
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
+      <div className="w-full max-w-md space-y-3">
+        <Input
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="请输入账号/手机号"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          disabled={busy}
+          className="h-12"
+        />
+        <div className="flex gap-2">
+          <Input
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="请输入验证码"
+            value={code}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+              setCode(v);
+              if (v.length === 6 && !busy) verify(v);
+            }}
+            disabled={busy}
+            className="h-12 flex-1"
+          />
+          <Button
+            onClick={send}
+            disabled={busy || cooldown > 0}
+            className="h-12 shrink-0"
+          >
+            {busy && step === "phone"
+              ? "发送中…"
+              : cooldown > 0
+                ? `${cooldown}s`
+                : "获取验证码"}
+          </Button>
         </div>
 
-        <p className="mt-10 text-xs text-muted-foreground text-center">
-          登录即代表你授权将手机号提供给原业务站点用于账号识别。
-        </p>
+        {err && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive text-center">
+            {err}
+          </div>
+        )}
       </div>
     </div>
   );
