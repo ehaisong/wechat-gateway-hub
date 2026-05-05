@@ -38,6 +38,7 @@ function errorRedirect(code: string, msg: string): Response {
 }
 
 export const Route = createFileRoute("/oauth/wechat/start")({
+  // @ts-expect-error server option provided by TanStack Start plugin
   server: {
     handlers: {
       GET: async ({ request }: { request: Request }) => {

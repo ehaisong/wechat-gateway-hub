@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/healthz")({
+  // @ts-expect-error server option provided by TanStack Start plugin
   server: {
     handlers: {
       GET: async () => {

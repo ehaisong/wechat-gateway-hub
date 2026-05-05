@@ -30,6 +30,7 @@ function checkSameOrigin(req: Request): boolean {
 }
 
 export const Route = createFileRoute("/api/sms/send")({
+  // @ts-expect-error server option provided by TanStack Start plugin
   server: {
     handlers: {
       POST: async ({ request }: { request: Request }) => {

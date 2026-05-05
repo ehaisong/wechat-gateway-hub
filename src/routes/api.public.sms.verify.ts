@@ -27,6 +27,7 @@ const BodyExtra = z.object({
 });
 
 export const Route = createFileRoute("/api/public/sms/verify")({
+  // @ts-expect-error server option provided by TanStack Start plugin
   server: {
     handlers: {
       OPTIONS: async ({ request }: { request: Request }) => preflightResponse(request),
