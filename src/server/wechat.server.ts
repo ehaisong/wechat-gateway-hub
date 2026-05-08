@@ -36,6 +36,20 @@ export interface WechatUserInfo {
 const TOKEN_URL = "https://api.weixin.qq.com/sns/oauth2/access_token";
 const USERINFO_URL = "https://api.weixin.qq.com/sns/userinfo";
 
+// 微信 API 超时(ms)。token 必须等到; userinfo 失败可降级为 openid-only。
+const TOKEN_TIMEOUT_MS = 4000;
+const USERINFO_TIMEOUT_MS = 2500;
+
+async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), ms);
+  try {
+    return await fetch(url, { method: "GET", signal: ac.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v) throw new Error(`${name} is not configured`);
@@ -98,7 +112,7 @@ export async function exchangeCodeForToken(
 ): Promise<WechatTokenResponse> {
   const { appid, secret } = getCreds(flow);
   const url = `${TOKEN_URL}?appid=${encodeURIComponent(appid)}&secret=${encodeURIComponent(secret)}&code=${encodeURIComponent(code)}&grant_type=authorization_code`;
-  const res = await fetch(url, { method: "GET" });
+  const res = await fetchWithTimeout(url, TOKEN_TIMEOUT_MS);
   if (!res.ok) throw new Error(`WeChat token endpoint HTTP ${res.status}`);
   const json = (await res.json()) as WechatTokenResponse;
   if (json.errcode) {
@@ -112,7 +126,7 @@ export async function fetchUserInfo(
   openid: string,
 ): Promise<WechatUserInfo> {
   const url = `${USERINFO_URL}?access_token=${encodeURIComponent(accessToken)}&openid=${encodeURIComponent(openid)}&lang=zh_CN`;
-  const res = await fetch(url, { method: "GET" });
+  const res = await fetchWithTimeout(url, USERINFO_TIMEOUT_MS);
   if (!res.ok) throw new Error(`WeChat userinfo endpoint HTTP ${res.status}`);
   const json = (await res.json()) as WechatUserInfo;
   if (json.errcode) {
