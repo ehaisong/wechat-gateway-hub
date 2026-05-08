@@ -112,7 +112,7 @@ export async function exchangeCodeForToken(
 ): Promise<WechatTokenResponse> {
   const { appid, secret } = getCreds(flow);
   const url = `${TOKEN_URL}?appid=${encodeURIComponent(appid)}&secret=${encodeURIComponent(secret)}&code=${encodeURIComponent(code)}&grant_type=authorization_code`;
-  const res = await fetch(url, { method: "GET" });
+  const res = await fetchWithTimeout(url, TOKEN_TIMEOUT_MS);
   if (!res.ok) throw new Error(`WeChat token endpoint HTTP ${res.status}`);
   const json = (await res.json()) as WechatTokenResponse;
   if (json.errcode) {
