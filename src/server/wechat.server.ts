@@ -126,7 +126,7 @@ export async function fetchUserInfo(
   openid: string,
 ): Promise<WechatUserInfo> {
   const url = `${USERINFO_URL}?access_token=${encodeURIComponent(accessToken)}&openid=${encodeURIComponent(openid)}&lang=zh_CN`;
-  const res = await fetch(url, { method: "GET" });
+  const res = await fetchWithTimeout(url, USERINFO_TIMEOUT_MS);
   if (!res.ok) throw new Error(`WeChat userinfo endpoint HTTP ${res.status}`);
   const json = (await res.json()) as WechatUserInfo;
   if (json.errcode) {
