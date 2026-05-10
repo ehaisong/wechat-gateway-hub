@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RRouteImport } from './routes/r'
 import { Route as HealthzRouteImport } from './routes/healthz'
+import { Route as HealthRouteImport } from './routes/health'
 import { Route as ErrorRouteImport } from './routes/error'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WechatCallbackRouteImport } from './routes/wechat.callback'
@@ -24,9 +26,19 @@ import { Route as ApiPublicSmsSendRouteImport } from './routes/api.public.sms.se
 import { Route as ApiPublicOauthExchangeRouteImport } from './routes/api.public.oauth.exchange'
 import { Route as ApiPublicOauthWechatExchangeRouteImport } from './routes/api.public.oauth.wechat.exchange'
 
+const RRoute = RRouteImport.update({
+  id: '/r',
+  path: '/r',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HealthzRoute = HealthzRouteImport.update({
   id: '/healthz',
   path: '/healthz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthRoute = HealthRouteImport.update({
+  id: '/health',
+  path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ErrorRoute = ErrorRouteImport.update({
@@ -99,7 +111,9 @@ const ApiPublicOauthWechatExchangeRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/error': typeof ErrorRoute
+  '/health': typeof HealthRoute
   '/healthz': typeof HealthzRoute
+  '/r': typeof RRoute
   '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
   '/api/sms/send': typeof ApiSmsSendRoute
@@ -115,7 +129,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/error': typeof ErrorRoute
+  '/health': typeof HealthRoute
   '/healthz': typeof HealthzRoute
+  '/r': typeof RRoute
   '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
   '/api/sms/send': typeof ApiSmsSendRoute
@@ -132,7 +148,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/error': typeof ErrorRoute
+  '/health': typeof HealthRoute
   '/healthz': typeof HealthzRoute
+  '/r': typeof RRoute
   '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
   '/api/sms/send': typeof ApiSmsSendRoute
@@ -150,7 +168,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/error'
+    | '/health'
     | '/healthz'
+    | '/r'
     | '/login/phone'
     | '/wechat/callback'
     | '/api/sms/send'
@@ -166,7 +186,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/error'
+    | '/health'
     | '/healthz'
+    | '/r'
     | '/login/phone'
     | '/wechat/callback'
     | '/api/sms/send'
@@ -182,7 +204,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/error'
+    | '/health'
     | '/healthz'
+    | '/r'
     | '/login/phone'
     | '/wechat/callback'
     | '/api/sms/send'
@@ -199,7 +223,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ErrorRoute: typeof ErrorRoute
+  HealthRoute: typeof HealthRoute
   HealthzRoute: typeof HealthzRoute
+  RRoute: typeof RRoute
   LoginPhoneRoute: typeof LoginPhoneRoute
   WechatCallbackRoute: typeof WechatCallbackRoute
   ApiSmsSendRoute: typeof ApiSmsSendRoute
@@ -215,11 +241,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/r': {
+      id: '/r'
+      path: '/r'
+      fullPath: '/r'
+      preLoaderRoute: typeof RRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/healthz': {
       id: '/healthz'
       path: '/healthz'
       fullPath: '/healthz'
       preLoaderRoute: typeof HealthzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health': {
+      id: '/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/error': {
@@ -319,7 +359,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ErrorRoute: ErrorRoute,
+  HealthRoute: HealthRoute,
   HealthzRoute: HealthzRoute,
+  RRoute: RRoute,
   LoginPhoneRoute: LoginPhoneRoute,
   WechatCallbackRoute: WechatCallbackRoute,
   ApiSmsSendRoute: ApiSmsSendRoute,
