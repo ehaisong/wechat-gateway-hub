@@ -8,6 +8,7 @@ import { getClient } from "@/server/clients.server";
 import { getKV } from "@/server/kv.server";
 import { randomToken } from "@/server/crypto.server";
 import { exchangeCodeForToken, fetchUserInfo } from "@/server/wechat.server";
+import { logClientCall } from "@/server/logger.server";
 import type { StateRecord } from "./oauth.wechat.start";
 import type { TicketRecord } from "@/server/ticket.server";
 
@@ -120,6 +121,11 @@ export const Route = createFileRoute("/wechat/callback")({
             `target=${back.origin}${back.pathname} ticket=${ticket.slice(0, 8)}… ` +
             `dt=${Date.now() - t0}ms`,
         );
+
+        // 记录业务调用日志
+        logClientCall(stateRec.client, "微信回调完成", 
+          request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1",
+          `openid=${token.openid?.slice(0, 6)}… dt=${Date.now() - t0}ms`);
 
         return new Response(null, {
           status: 302,

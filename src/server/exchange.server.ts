@@ -11,6 +11,7 @@ import { z } from "zod";
 import { getClient, verifyClientSecret } from "@/server/clients.server";
 import { getKV } from "@/server/kv.server";
 import type { TicketRecord } from "@/server/ticket.server";
+import { logClientCall } from "@/server/logger.server";
 
 const Body = z.object({
   ticket: z.string().min(20).max(200),
@@ -25,6 +26,12 @@ function json(status: number, body: unknown): Response {
   });
 }
 
+function getClientIp(request: Request): string {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || request.headers.get("x-real-ip")
+    || "127.0.0.1";
+}
+
 export async function handleExchange(request: Request): Promise<Response> {
   let parsed: z.infer<typeof Body>;
   try {
@@ -34,19 +41,35 @@ export async function handleExchange(request: Request): Promise<Response> {
   }
 
   const client = getClient(parsed.client);
-  if (!client) return json(401, { error: "unknown_client" });
+  if (!client) {
+    logClientCall(parsed.client, "ticket兑换", getClientIp(request), "unknown_client", false);
+    return json(401, { error: "unknown_client" });
+  }
 
   const ok = await verifyClientSecret(client, parsed.client_secret);
-  if (!ok) return json(401, { error: "bad_credentials" });
+  if (!ok) {
+    logClientCall(parsed.client, "ticket兑换", getClientIp(request), "bad_credentials", false);
+    return json(401, { error: "bad_credentials" });
+  }
 
   const rec = await getKV().take<TicketRecord>(`ticket:${parsed.ticket}`);
-  if (!rec) return json(410, { error: "ticket_not_found_or_expired" });
-  if (rec.used) return json(410, { error: "ticket_already_used" });
-  if (rec.client !== parsed.client) return json(403, { error: "ticket_client_mismatch" });
+  if (!rec) {
+    logClientCall(parsed.client, "ticket兑换", getClientIp(request), "ticket_not_found_or_expired", false);
+    return json(410, { error: "ticket_not_found_or_expired" });
+  }
+  if (rec.used) {
+    logClientCall(parsed.client, "ticket兑换", getClientIp(request), "ticket_already_used", false);
+    return json(410, { error: "ticket_already_used" });
+  }
+  if (rec.client !== parsed.client) {
+    logClientCall(parsed.client, "ticket兑换", getClientIp(request), "ticket_client_mismatch", false);
+    return json(403, { error: "ticket_client_mismatch" });
+  }
 
   const issued_at = Math.floor(rec.created_at / 1000);
 
   if (rec.provider === "phone") {
+    logClientCall(parsed.client, "ticket兑换(手机)", getClientIp(request), "ok");
     return json(200, {
       provider: "phone",
       phone: rec.user.phone,
@@ -55,6 +78,7 @@ export async function handleExchange(request: Request): Promise<Response> {
   }
 
   // wechat (default + back-compat: 旧调用方拿到的字段位置不变)
+  logClientCall(parsed.client, "ticket兑换(微信)", getClientIp(request), "ok");
   return json(200, {
     provider: "wechat",
     openid: rec.user.openid,

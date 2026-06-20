@@ -16,6 +16,7 @@ import {
   isWeChatBrowser,
   type WechatFlow,
 } from "@/server/wechat.server";
+import { logClientCall } from "@/server/logger.server";
 
 const STATE_TTL_SECONDS = 5 * 60;
 
@@ -120,6 +121,11 @@ export const Route = createFileRoute("/oauth/wechat/start")({
             `callback=${callbackUrl} target_host=${new URL(target).host} ` +
             `dt=${Date.now() - t0}ms`,
         );
+
+        // 记录业务调用日志
+        logClientCall(clientName, "微信登录发起", 
+          request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1",
+          `flow=${flow} return_path=${returnPath}`);
 
         return new Response(null, {
           status: 302,

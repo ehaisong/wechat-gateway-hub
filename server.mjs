@@ -8,7 +8,7 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
@@ -16,6 +16,8 @@ const HOST = process.env.HOST || "0.0.0.0";
 
 const clientDir = resolve(__dirname, "dist/client");
 const serverEntry = resolve(__dirname, "dist/server/server.js");
+// Windows 下 ESM 动态 import 需要合法的 file:// URL（盘符路径会报 ERR_UNSUPPORTED_ESM_URL_SCHEME）
+const serverEntryURL = pathToFileURL(serverEntry).href;
 
 if (!existsSync(serverEntry)) {
   console.error(`[server] SSR 入口不存在: ${serverEntry}`);
@@ -23,7 +25,7 @@ if (!existsSync(serverEntry)) {
   process.exit(1);
 }
 
-const mod = await import(serverEntry);
+const mod = await import(serverEntryURL);
 const handler = mod.default?.fetch ?? mod.fetch;
 if (typeof handler !== "function") {
   console.error("[server] dist/server/server.js 没有导出 fetch handler");

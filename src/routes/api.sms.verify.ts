@@ -7,6 +7,7 @@ import { getKV } from "@/server/kv.server";
 import { verifyOtp } from "@/server/phone-otp.server";
 import { randomToken } from "@/server/crypto.server";
 import { getClient } from "@/server/clients.server";
+import { logClientCall } from "@/server/logger.server";
 import type { PhoneStateRecord } from "./oauth.phone.start";
 import type { TicketRecord } from "@/server/ticket.server";
 
@@ -98,6 +99,10 @@ export const Route = createFileRoute("/api/sms/verify")({
           `[sms-verify] ok client=${state.client} -> ${back.origin}${back.pathname} ` +
             `ticket=${ticket.slice(0, 8)}…`,
         );
+
+        logClientCall(state.client, "短信验证通过", 
+          request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1",
+          `phone=${v.phone.slice(0, 3)}****`);
 
         return json(200, { ok: true, redirect: back.toString() });
       },

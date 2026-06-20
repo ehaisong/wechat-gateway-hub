@@ -16,10 +16,22 @@ import { Route as ErrorRouteImport } from './routes/error'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WechatCallbackRouteImport } from './routes/wechat.callback'
 import { Route as LoginPhoneRouteImport } from './routes/login.phone'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as OauthWechatStartRouteImport } from './routes/oauth.wechat.start'
 import { Route as OauthPhoneStartRouteImport } from './routes/oauth.phone.start'
 import { Route as ApiSmsVerifyRouteImport } from './routes/api.sms.verify'
 import { Route as ApiSmsSendRouteImport } from './routes/api.sms.send'
+import { Route as ApiAdminStatusRouteImport } from './routes/api.admin.status'
+import { Route as ApiAdminSettingsRouteImport } from './routes/api.admin.settings'
+import { Route as ApiAdminSessionRouteImport } from './routes/api.admin.session'
+import { Route as ApiAdminLogoutRouteImport } from './routes/api.admin.logout'
+import { Route as ApiAdminLoginRouteImport } from './routes/api.admin.login'
+import { Route as ApiAdminDomainsRouteImport } from './routes/api.admin.domains'
+import { Route as ApiAdminClientsRouteImport } from './routes/api.admin.clients'
 import { Route as ApiPublicSmsVerifyRouteImport } from './routes/api.public.sms.verify'
 import { Route as ApiPublicSmsStartRouteImport } from './routes/api.public.sms.start'
 import { Route as ApiPublicSmsSendRouteImport } from './routes/api.public.sms.send'
@@ -61,6 +73,31 @@ const LoginPhoneRoute = LoginPhoneRouteImport.update({
   path: '/login/phone',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDomainsRoute = AdminDomainsRouteImport.update({
+  id: '/admin/domains',
+  path: '/admin/domains',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminClientsRoute = AdminClientsRouteImport.update({
+  id: '/admin/clients',
+  path: '/admin/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OauthWechatStartRoute = OauthWechatStartRouteImport.update({
   id: '/oauth/wechat/start',
   path: '/oauth/wechat/start',
@@ -79,6 +116,41 @@ const ApiSmsVerifyRoute = ApiSmsVerifyRouteImport.update({
 const ApiSmsSendRoute = ApiSmsSendRouteImport.update({
   id: '/api/sms/send',
   path: '/api/sms/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminStatusRoute = ApiAdminStatusRouteImport.update({
+  id: '/api/admin/status',
+  path: '/api/admin/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminSettingsRoute = ApiAdminSettingsRouteImport.update({
+  id: '/api/admin/settings',
+  path: '/api/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminSessionRoute = ApiAdminSessionRouteImport.update({
+  id: '/api/admin/session',
+  path: '/api/admin/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLogoutRoute = ApiAdminLogoutRouteImport.update({
+  id: '/api/admin/logout',
+  path: '/api/admin/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLoginRoute = ApiAdminLoginRouteImport.update({
+  id: '/api/admin/login',
+  path: '/api/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminDomainsRoute = ApiAdminDomainsRouteImport.update({
+  id: '/api/admin/domains',
+  path: '/api/admin/domains',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminClientsRoute = ApiAdminClientsRouteImport.update({
+  id: '/api/admin/clients',
+  path: '/api/admin/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicSmsVerifyRoute = ApiPublicSmsVerifyRouteImport.update({
@@ -114,8 +186,20 @@ export interface FileRoutesByFullPath {
   '/health': typeof HealthRoute
   '/healthz': typeof HealthzRoute
   '/r': typeof RRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/domains': typeof AdminDomainsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
+  '/api/admin/clients': typeof ApiAdminClientsRoute
+  '/api/admin/domains': typeof ApiAdminDomainsRoute
+  '/api/admin/login': typeof ApiAdminLoginRoute
+  '/api/admin/logout': typeof ApiAdminLogoutRoute
+  '/api/admin/session': typeof ApiAdminSessionRoute
+  '/api/admin/settings': typeof ApiAdminSettingsRoute
+  '/api/admin/status': typeof ApiAdminStatusRoute
   '/api/sms/send': typeof ApiSmsSendRoute
   '/api/sms/verify': typeof ApiSmsVerifyRoute
   '/oauth/phone/start': typeof OauthPhoneStartRoute
@@ -132,8 +216,20 @@ export interface FileRoutesByTo {
   '/health': typeof HealthRoute
   '/healthz': typeof HealthzRoute
   '/r': typeof RRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/domains': typeof AdminDomainsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
+  '/api/admin/clients': typeof ApiAdminClientsRoute
+  '/api/admin/domains': typeof ApiAdminDomainsRoute
+  '/api/admin/login': typeof ApiAdminLoginRoute
+  '/api/admin/logout': typeof ApiAdminLogoutRoute
+  '/api/admin/session': typeof ApiAdminSessionRoute
+  '/api/admin/settings': typeof ApiAdminSettingsRoute
+  '/api/admin/status': typeof ApiAdminStatusRoute
   '/api/sms/send': typeof ApiSmsSendRoute
   '/api/sms/verify': typeof ApiSmsVerifyRoute
   '/oauth/phone/start': typeof OauthPhoneStartRoute
@@ -151,8 +247,20 @@ export interface FileRoutesById {
   '/health': typeof HealthRoute
   '/healthz': typeof HealthzRoute
   '/r': typeof RRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/domains': typeof AdminDomainsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login/phone': typeof LoginPhoneRoute
   '/wechat/callback': typeof WechatCallbackRoute
+  '/api/admin/clients': typeof ApiAdminClientsRoute
+  '/api/admin/domains': typeof ApiAdminDomainsRoute
+  '/api/admin/login': typeof ApiAdminLoginRoute
+  '/api/admin/logout': typeof ApiAdminLogoutRoute
+  '/api/admin/session': typeof ApiAdminSessionRoute
+  '/api/admin/settings': typeof ApiAdminSettingsRoute
+  '/api/admin/status': typeof ApiAdminStatusRoute
   '/api/sms/send': typeof ApiSmsSendRoute
   '/api/sms/verify': typeof ApiSmsVerifyRoute
   '/oauth/phone/start': typeof OauthPhoneStartRoute
@@ -171,8 +279,20 @@ export interface FileRouteTypes {
     | '/health'
     | '/healthz'
     | '/r'
+    | '/admin/clients'
+    | '/admin/dashboard'
+    | '/admin/domains'
+    | '/admin/login'
+    | '/admin/settings'
     | '/login/phone'
     | '/wechat/callback'
+    | '/api/admin/clients'
+    | '/api/admin/domains'
+    | '/api/admin/login'
+    | '/api/admin/logout'
+    | '/api/admin/session'
+    | '/api/admin/settings'
+    | '/api/admin/status'
     | '/api/sms/send'
     | '/api/sms/verify'
     | '/oauth/phone/start'
@@ -189,8 +309,20 @@ export interface FileRouteTypes {
     | '/health'
     | '/healthz'
     | '/r'
+    | '/admin/clients'
+    | '/admin/dashboard'
+    | '/admin/domains'
+    | '/admin/login'
+    | '/admin/settings'
     | '/login/phone'
     | '/wechat/callback'
+    | '/api/admin/clients'
+    | '/api/admin/domains'
+    | '/api/admin/login'
+    | '/api/admin/logout'
+    | '/api/admin/session'
+    | '/api/admin/settings'
+    | '/api/admin/status'
     | '/api/sms/send'
     | '/api/sms/verify'
     | '/oauth/phone/start'
@@ -207,8 +339,20 @@ export interface FileRouteTypes {
     | '/health'
     | '/healthz'
     | '/r'
+    | '/admin/clients'
+    | '/admin/dashboard'
+    | '/admin/domains'
+    | '/admin/login'
+    | '/admin/settings'
     | '/login/phone'
     | '/wechat/callback'
+    | '/api/admin/clients'
+    | '/api/admin/domains'
+    | '/api/admin/login'
+    | '/api/admin/logout'
+    | '/api/admin/session'
+    | '/api/admin/settings'
+    | '/api/admin/status'
     | '/api/sms/send'
     | '/api/sms/verify'
     | '/oauth/phone/start'
@@ -226,8 +370,20 @@ export interface RootRouteChildren {
   HealthRoute: typeof HealthRoute
   HealthzRoute: typeof HealthzRoute
   RRoute: typeof RRoute
+  AdminClientsRoute: typeof AdminClientsRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminDomainsRoute: typeof AdminDomainsRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   LoginPhoneRoute: typeof LoginPhoneRoute
   WechatCallbackRoute: typeof WechatCallbackRoute
+  ApiAdminClientsRoute: typeof ApiAdminClientsRoute
+  ApiAdminDomainsRoute: typeof ApiAdminDomainsRoute
+  ApiAdminLoginRoute: typeof ApiAdminLoginRoute
+  ApiAdminLogoutRoute: typeof ApiAdminLogoutRoute
+  ApiAdminSessionRoute: typeof ApiAdminSessionRoute
+  ApiAdminSettingsRoute: typeof ApiAdminSettingsRoute
+  ApiAdminStatusRoute: typeof ApiAdminStatusRoute
   ApiSmsSendRoute: typeof ApiSmsSendRoute
   ApiSmsVerifyRoute: typeof ApiSmsVerifyRoute
   OauthPhoneStartRoute: typeof OauthPhoneStartRoute
@@ -290,6 +446,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginPhoneRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/domains': {
+      id: '/admin/domains'
+      path: '/admin/domains'
+      fullPath: '/admin/domains'
+      preLoaderRoute: typeof AdminDomainsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/clients': {
+      id: '/admin/clients'
+      path: '/admin/clients'
+      fullPath: '/admin/clients'
+      preLoaderRoute: typeof AdminClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/oauth/wechat/start': {
       id: '/oauth/wechat/start'
       path: '/oauth/wechat/start'
@@ -316,6 +507,55 @@ declare module '@tanstack/react-router' {
       path: '/api/sms/send'
       fullPath: '/api/sms/send'
       preLoaderRoute: typeof ApiSmsSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/status': {
+      id: '/api/admin/status'
+      path: '/api/admin/status'
+      fullPath: '/api/admin/status'
+      preLoaderRoute: typeof ApiAdminStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/settings': {
+      id: '/api/admin/settings'
+      path: '/api/admin/settings'
+      fullPath: '/api/admin/settings'
+      preLoaderRoute: typeof ApiAdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/session': {
+      id: '/api/admin/session'
+      path: '/api/admin/session'
+      fullPath: '/api/admin/session'
+      preLoaderRoute: typeof ApiAdminSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/logout': {
+      id: '/api/admin/logout'
+      path: '/api/admin/logout'
+      fullPath: '/api/admin/logout'
+      preLoaderRoute: typeof ApiAdminLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/login': {
+      id: '/api/admin/login'
+      path: '/api/admin/login'
+      fullPath: '/api/admin/login'
+      preLoaderRoute: typeof ApiAdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/domains': {
+      id: '/api/admin/domains'
+      path: '/api/admin/domains'
+      fullPath: '/api/admin/domains'
+      preLoaderRoute: typeof ApiAdminDomainsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/clients': {
+      id: '/api/admin/clients'
+      path: '/api/admin/clients'
+      fullPath: '/api/admin/clients'
+      preLoaderRoute: typeof ApiAdminClientsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/sms/verify': {
@@ -362,8 +602,20 @@ const rootRouteChildren: RootRouteChildren = {
   HealthRoute: HealthRoute,
   HealthzRoute: HealthzRoute,
   RRoute: RRoute,
+  AdminClientsRoute: AdminClientsRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminDomainsRoute: AdminDomainsRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   LoginPhoneRoute: LoginPhoneRoute,
   WechatCallbackRoute: WechatCallbackRoute,
+  ApiAdminClientsRoute: ApiAdminClientsRoute,
+  ApiAdminDomainsRoute: ApiAdminDomainsRoute,
+  ApiAdminLoginRoute: ApiAdminLoginRoute,
+  ApiAdminLogoutRoute: ApiAdminLogoutRoute,
+  ApiAdminSessionRoute: ApiAdminSessionRoute,
+  ApiAdminSettingsRoute: ApiAdminSettingsRoute,
+  ApiAdminStatusRoute: ApiAdminStatusRoute,
   ApiSmsSendRoute: ApiSmsSendRoute,
   ApiSmsVerifyRoute: ApiSmsVerifyRoute,
   OauthPhoneStartRoute: OauthPhoneStartRoute,
