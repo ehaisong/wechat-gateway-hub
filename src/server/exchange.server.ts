@@ -39,6 +39,24 @@ export async function handleExchange(request: Request): Promise<Response> {
   } catch {
     return json(400, { error: "invalid_request" });
   }
+  return exchangeCore(parsed, request);
+}
+
+/** GET 版本：从 URL query 参数读取（兼容前端直接 GET 调用） */
+export async function handleExchangeGet(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const parsed = Body.safeParse({
+    ticket: url.searchParams.get("ticket") ?? "",
+    client: url.searchParams.get("client") ?? "",
+    client_secret: url.searchParams.get("client_secret") ?? "",
+  });
+  if (!parsed.success) {
+    return json(400, { error: "invalid_request", details: parsed.error.flatten().fieldErrors });
+  }
+  return exchangeCore(parsed.data, request);
+}
+
+async function exchangeCore(parsed: z.infer<typeof Body>, request: Request): Promise<Response> {
 
   const client = getClient(parsed.client);
   if (!client) {
